@@ -10,6 +10,7 @@ import aiohttp
 from homeassistant.components import conversation
 from homeassistant.config_entries import ConfigEntry, ConfigSubentry
 from homeassistant.const import CONF_API_KEY
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import EntityPlatform
 
@@ -35,39 +36,20 @@ ERROR_GETTING_RESPONSE = "Error getting response from ModelScope"
 class YanfengAIBaseEntity:
     """Base entity for Yanfeng AI Task."""
 
-    def __init__(self, entry: ConfigEntry, subentry: ConfigSubentry | None = None) -> None:
+    def __init__(self, entry: ConfigEntry, subentry: ConfigSubentry) -> None:
         """Initialize the entity."""
         self.entry = entry
         self.subentry = subentry
-
-        # Set unique_id based on subentry
-        if subentry:
-            self._attr_unique_id = subentry.subentry_id
-            # Each subentry gets its own device
-            self._attr_device_info = DeviceInfo(
-                identifiers={(DOMAIN, subentry.subentry_id)},
-                name=subentry.title,
-                manufacturer="Yanfeng",
-                model="AI Task Integration",
-                sw_version="1.0.4",
-            )
-        else:
-            # This shouldn't happen with the new architecture, but keep for safety
-            self._attr_unique_id = entry.entry_id
-            self._attr_device_info = DeviceInfo(
-                identifiers={(DOMAIN, entry.entry_id)},
-                name=entry.title,
-                manufacturer="Yanfeng",
-                model="AI Task Integration",
-                sw_version="1.0.4",
-            )
-
-    @property
-    def name(self) -> str:
-        """Return the name of the entity."""
-        if self.subentry:
-            return self.subentry.title
-        return self.entry.title
+        self._attr_name = subentry.title
+        self._attr_unique_id = subentry.subentry_id
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, subentry.subentry_id)},
+            name=subentry.title,
+            manufacturer="Yanfeng",
+            model="AI Task Integration",
+            sw_version="1.0.5",
+            entry_type=dr.DeviceEntryType.SERVICE,
+        )
 
     @property
     def available(self) -> bool:
@@ -90,10 +72,8 @@ class YanfengAIBaseEntity:
         return ModelScopeAPIClient(self.session, self.api_key)
 
     def _get_option(self, key: str, default: Any = None) -> Any:
-        """Get option from subentry or entry options."""
-        if self.subentry:
-            return self.subentry.data.get(key, default)
-        return self.entry.options.get(key, default)
+        """Get option from subentry data."""
+        return self.subentry.data.get(key, default)
 
 
 class YanfengAILLMBaseEntity(YanfengAIBaseEntity):

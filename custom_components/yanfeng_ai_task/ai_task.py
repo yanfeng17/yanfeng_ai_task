@@ -61,11 +61,10 @@ class YanfengAITaskEntity(
         self,
         hass: HomeAssistant,
         entry: YanfengAIConfigEntry,
-        subentry: ConfigSubentry | None,
+        subentry: ConfigSubentry,
     ) -> None:
         """Initialize the entity."""
         super().__init__(entry, subentry)
-        self.subentry = subentry
         # Enable all supported features by default
         self._attr_supported_features = (
             ai_task.AITaskEntityFeature.GENERATE_DATA

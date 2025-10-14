@@ -40,15 +40,11 @@ class YanfengAIConversationEntity(
 
     _attr_supports_streaming = False  # ModelScope doesn't support streaming yet
 
-    def __init__(self, entry: ConfigEntry, subentry: ConfigSubentry | None) -> None:
+    def __init__(self, entry: ConfigEntry, subentry: ConfigSubentry) -> None:
         """Initialize the agent."""
         super().__init__(entry, subentry)
-        # Check both subentry data and entry options for LLM_HASS_API
-        llm_api_enabled = False
-        if self.subentry:
-            llm_api_enabled = self.subentry.data.get(CONF_LLM_HASS_API, False)
-        else:
-            llm_api_enabled = self.entry.options.get(CONF_LLM_HASS_API, False)
+        # Check subentry data for LLM_HASS_API
+        llm_api_enabled = self.subentry.data.get(CONF_LLM_HASS_API, False)
 
         if llm_api_enabled:
             self._attr_supported_features = (
@@ -76,11 +72,8 @@ class YanfengAIConversationEntity(
         chat_log: conversation.ChatLog,
     ) -> conversation.ConversationResult:
         """Call the API."""
-        # Get options from subentry data or entry options
-        if self.subentry:
-            options = self.subentry.data
-        else:
-            options = self.entry.options
+        # Get options from subentry data
+        options = self.subentry.data
 
         try:
             await chat_log.async_provide_llm_data(
