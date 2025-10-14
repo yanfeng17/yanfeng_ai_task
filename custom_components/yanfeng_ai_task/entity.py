@@ -39,18 +39,28 @@ class YanfengAIBaseEntity:
         """Initialize the entity."""
         self.entry = entry
         self.subentry = subentry
-        self._attr_unique_id = (
-            f"{entry.entry_id}-{subentry.subentry_id}"
-            if subentry
-            else entry.entry_id
-        )
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.entry_id)},
-            name="Yanfeng AI Task",
-            manufacturer="Yanfeng",
-            model="AI Task Integration",
-            sw_version="1.0.0",
-        )
+
+        # Set unique_id based on subentry
+        if subentry:
+            self._attr_unique_id = subentry.subentry_id
+            # Each subentry gets its own device
+            self._attr_device_info = DeviceInfo(
+                identifiers={(DOMAIN, subentry.subentry_id)},
+                name=subentry.title,
+                manufacturer="Yanfeng",
+                model="AI Task Integration",
+                sw_version="1.0.4",
+            )
+        else:
+            # This shouldn't happen with the new architecture, but keep for safety
+            self._attr_unique_id = entry.entry_id
+            self._attr_device_info = DeviceInfo(
+                identifiers={(DOMAIN, entry.entry_id)},
+                name=entry.title,
+                manufacturer="Yanfeng",
+                model="AI Task Integration",
+                sw_version="1.0.4",
+            )
 
     @property
     def name(self) -> str:
