@@ -195,11 +195,18 @@ class YanfengAISubentryFlowHandler(ConfigSubentryFlow):
                 if self.source == "user":
                     # Creating new subentry
                     LOGGER.debug("Creating new subentry with data: %s", user_input)
-                    return self.async_create_subentry(data=user_input)
+                    return self.async_create_entry(
+                        title=f"{DEFAULT_AI_TASK_NAME}",
+                        data=user_input,
+                    )
                 else:
                     # Reconfiguring existing subentry
                     LOGGER.debug("Updating subentry with data: %s", user_input)
-                    return self.async_update_subentry(data=user_input)
+                    return self.async_update_and_abort(
+                        self._get_entry(),
+                        self._get_reconfigure_subentry(),
+                        data=user_input,
+                    )
             except Exception as err:
                 LOGGER.error("Error in async_step_set_options: %s", err, exc_info=True)
                 raise
