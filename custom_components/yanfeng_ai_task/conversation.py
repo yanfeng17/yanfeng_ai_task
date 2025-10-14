@@ -20,10 +20,7 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up conversation entities."""
-    # Create conversation entity for the main config entry (default agent)
-    async_add_entities([YanfengAIConversationEntity(config_entry, None)])
-
-    # Also handle subentries if they exist
+    # Only create entities for subentries, not for main config entry
     for subentry in config_entry.subentries.values():
         if subentry.subentry_type != "conversation":
             continue

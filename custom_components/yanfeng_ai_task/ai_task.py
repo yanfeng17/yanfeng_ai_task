@@ -40,10 +40,7 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up AI Task entities."""
-    # Create AI Task entity for the main config entry
-    async_add_entities([YanfengAITaskEntity(hass, config_entry, None)])
-    
-    # Also handle subentries if they exist
+    # Only create entities for subentries, not for main config entry
     for subentry in config_entry.subentries.values():
         if subentry.subentry_type != "ai_task_data":
             continue

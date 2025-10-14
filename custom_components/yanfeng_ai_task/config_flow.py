@@ -189,7 +189,14 @@ class YanfengAISubentryFlowHandler(ConfigSubentryFlow):
             # Handle LLM_HASS_API - remove if empty
             if not user_input.get(CONF_LLM_HASS_API):
                 user_input.pop(CONF_LLM_HASS_API, None)
-            return self.async_create_subentry(data=user_input)
+
+            # Check if this is a new subentry or reconfiguration
+            if self.source == "user":
+                # Creating new subentry
+                return self.async_create_subentry(data=user_input)
+            else:
+                # Reconfiguring existing subentry
+                return self.async_update_subentry(data=user_input)
 
         # Get current subentry data
         if self.source == "user":
