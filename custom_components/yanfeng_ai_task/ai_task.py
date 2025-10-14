@@ -15,6 +15,7 @@ from homeassistant.util.json import json_loads
 
 from .const import (
     CONF_CHAT_MODEL,
+    CONF_IMAGE_MODEL,
     CONF_RECOMMENDED,
     LOGGER,
     RECOMMENDED_CHAT_MODEL,
@@ -138,44 +139,76 @@ class YanfengAITaskEntity(
         chat_log: conversation.ChatLog,
     ) -> ai_task.GenImageTaskResult:
         """Handle a generate image task."""
-        
+
         # Extract prompt from the last user message
         prompt = ""
+        image_url = None
+
         for content in reversed(chat_log.content):
             if isinstance(content, conversation.UserContent):
                 prompt = content.content
+
+                # Check for image attachments (for image editing)
+                if content.attachments:
+                    for attachment in content.attachments:
+                        # Check if it's an image attachment
+                        if attachment.mime_type and attachment.mime_type.startswith("image/"):
+                            # For now, use the attachment path as a placeholder
+                            # In production, you might need to upload this to a public URL
+                            # or convert to base64 data URL
+                            import base64
+                            try:
+                                with open(attachment.path, 'rb') as img_file:
+                                    image_data = base64.b64encode(img_file.read()).decode('utf-8')
+                                    image_url = f"data:{attachment.mime_type};base64,{image_data}"
+                                    LOGGER.debug("Found image attachment for editing: %s", attachment.path)
+                                    break
+                            except Exception as err:
+                                LOGGER.error("Failed to read image attachment %s: %s",
+                                           attachment.path, err)
                 break
-        
+
         if not prompt:
             raise HomeAssistantError("No prompt found for image generation")
+
+        # Get configured image model from options or data, fallback to recommended
+        image_model = (
+            self.entry.options.get(CONF_IMAGE_MODEL)
+            or self.entry.data.get(CONF_IMAGE_MODEL)
+            or RECOMMENDED_IMAGE_MODEL
+        )
+
+        LOGGER.debug("Using image model: %s for prompt: %s (with image: %s)",
+                    image_model, prompt[:100], "yes" if image_url else "no")
 
         try:
             # Use image generation model
             response = await self.client.generate_image(
-                model=RECOMMENDED_IMAGE_MODEL,  # Use recommended image model
+                model=image_model,
                 prompt=prompt,
+                image_url=image_url,
                 size="1024*1024",
                 n=1,
             )
-            
+
             # Extract image URLs from ModelScope response
             image_urls = []
             if "data" in response:
                 for item in response["data"]:
                     if "url" in item:
                         image_urls.append(item["url"])
-            
+
             if not image_urls:
                 LOGGER.error("No image URLs found in response: %s", response)
                 raise HomeAssistantError("Failed to generate image")
 
             # Download the first image
-            image_url = image_urls[0]
+            image_url_result = image_urls[0]
             async with aiohttp.ClientSession() as session:
-                async with session.get(image_url) as img_response:
+                async with session.get(image_url_result) as img_response:
                     if img_response.status != 200:
                         raise HomeAssistantError(f"Failed to download image: HTTP {img_response.status}")
-                    
+
                     image_data = await img_response.read()
                     content_type = img_response.headers.get("content-type", "image/png")
 
@@ -183,7 +216,7 @@ class YanfengAITaskEntity(
                 conversation_id=chat_log.conversation_id,
                 image_data=image_data,
                 mime_type=content_type,
-                model=RECOMMENDED_IMAGE_MODEL,
+                model=image_model,
                 revised_prompt=prompt,
             )
 

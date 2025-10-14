@@ -13,6 +13,7 @@ CONF_TEMPERATURE = "temperature"
 CONF_TOP_P = "top_p"
 CONF_MAX_TOKENS = "max_tokens"
 CONF_CHAT_MODEL = "chat_model"
+CONF_IMAGE_MODEL = "image_model"
 CONF_RECOMMENDED = "recommended"
 
 # Default values
@@ -41,6 +42,7 @@ SUPPORTED_CHAT_MODELS = [
 
 SUPPORTED_IMAGE_MODELS = [
     "Qwen/Qwen-Image",
+    "MusePublic/Qwen-Image-Edit",
     "stable-diffusion-v1-5",
     "stable-diffusion-xl-base-1-0",
     "AI-ModelScope/stable-diffusion-v1-5",

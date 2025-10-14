@@ -101,16 +101,31 @@ class ModelScopeAPIClient:
         self,
         model: str,
         prompt: str,
+        image_url: str | None = None,
         size: str = "1024x1024",
         quality: str = "standard",
         n: int = 1,
     ) -> dict[str, Any]:
-        """Generate image using ModelScope API-Inference with async task polling."""
-        
+        """Generate image using ModelScope API-Inference with async task polling.
+
+        Args:
+            model: The model ID to use for image generation
+            prompt: The text prompt for image generation/editing
+            image_url: Optional input image URL for image editing models
+            size: Image size (default: 1024x1024)
+            quality: Image quality (default: standard)
+            n: Number of images to generate (default: 1)
+        """
+
         payload = {
             "model": model,
             "prompt": prompt,
         }
+
+        # Add image_url for image editing models
+        if image_url:
+            payload["image_url"] = image_url
+            LOGGER.debug("Using image_url for image editing: %s", image_url)
 
         try:
             # Step 1: Submit image generation task
@@ -119,9 +134,9 @@ class ModelScopeAPIClient:
                 **self.headers,
                 "X-ModelScope-Async-Mode": "true"
             }
-            
+
             LOGGER.debug("Submitting ModelScope image task to %s with payload: %s", url, payload)
-            
+
             async with self.session.post(
                 url,
                 headers=headers,
@@ -136,7 +151,7 @@ class ModelScopeAPIClient:
 
                 result = await response.json()
                 LOGGER.debug("Received ModelScope task response: %s", result)
-                
+
                 if "task_id" not in result:
                     LOGGER.error("Invalid ModelScope task response format: %s", result)
                     raise HomeAssistantError(ERROR_INVALID_RESPONSE)

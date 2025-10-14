@@ -27,6 +27,7 @@ from homeassistant.helpers.selector import (
 
 from .const import (
     CONF_CHAT_MODEL,
+    CONF_IMAGE_MODEL,
     CONF_MAX_TOKENS,
     CONF_PROMPT,
     CONF_RECOMMENDED,
@@ -42,7 +43,9 @@ from .const import (
     LOGGER,
     RECOMMENDED_AI_TASK_OPTIONS,
     RECOMMENDED_CHAT_MODEL,
+    RECOMMENDED_IMAGE_MODEL,
     SUPPORTED_CHAT_MODELS,
+    SUPPORTED_IMAGE_MODELS,
     TIMEOUT_SECONDS,
 )
 from .helpers import ModelScopeAPIClient
@@ -119,6 +122,15 @@ class YanfengAITaskConfigFlow(ConfigFlow, domain=DOMAIN):
                         )
                     ),
                     vol.Optional(
+                        CONF_IMAGE_MODEL,
+                        default=RECOMMENDED_IMAGE_MODEL,
+                    ): SelectSelector(
+                        SelectSelectorConfig(
+                            options=SUPPORTED_IMAGE_MODELS,
+                            mode=SelectSelectorMode.DROPDOWN,
+                        )
+                    ),
+                    vol.Optional(
                         CONF_TEMPERATURE,
                         default=DEFAULT_TEMPERATURE,
                     ): vol.All(vol.Coerce(float), vol.Range(min=0, max=2)),
@@ -170,6 +182,15 @@ class YanfengAITaskOptionsFlow(OptionsFlow):
                     ): SelectSelector(
                         SelectSelectorConfig(
                             options=SUPPORTED_CHAT_MODELS,
+                            mode=SelectSelectorMode.DROPDOWN,
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_IMAGE_MODEL,
+                        default=options.get(CONF_IMAGE_MODEL, RECOMMENDED_IMAGE_MODEL),
+                    ): SelectSelector(
+                        SelectSelectorConfig(
+                            options=SUPPORTED_IMAGE_MODELS,
                             mode=SelectSelectorMode.DROPDOWN,
                         )
                     ),

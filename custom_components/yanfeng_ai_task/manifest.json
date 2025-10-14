@@ -9,5 +9,7 @@
   "documentation": "https://github.com/yanfeng/yanfeng_ai_task",
   "integration_type": "service",
   "iot_class": "cloud_polling",
-  "requirements": ["requests>=2.25.1", "aiohttp>=3.8.0"]
+  "requirements": ["requests>=2.25.1", "aiohttp>=3.8.0"],
+  "icon": "mdi:robot",
+  "logo": "logo.png"
 }
