@@ -1,0 +1,61 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Yanfeng AI Task",
+        "description": "Configure your API key and model settings for Yanfeng AI Task integration.",
+        "data": {
+          "api_key": "API Key",
+          "chat_model": "Chat Model",
+          "temperature": "Temperature (0.0-2.0)",
+          "max_tokens": "Max Tokens (1-8192)"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid API key. Please check your ModelScope API key.",
+      "unknown": "Unknown error occurred. Please try again."
+    },
+    "abort": {
+      "already_configured": "Service is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Yanfeng AI Task Options",
+        "description": "Configure the options for Yanfeng AI Task.",
+        "data": {
+          "prompt": "System Prompt",
+          "chat_model": "Chat Model",
+          "temperature": "Temperature",
+          "top_p": "Top P",
+          "max_tokens": "Max Tokens"
+        }
+      }
+    }
+  },
+  "entity": {
+    "conversation": {
+      "yanfeng_ai": {
+        "name": "Yanfeng AI"
+      }
+    }
+  },
+  "services": {
+    "generate_content": {
+      "name": "Generate content",
+      "description": "Generate content using Yanfeng AI Task.",
+      "fields": {
+        "prompt": {
+          "name": "Prompt",
+          "description": "The prompt to generate content from."
+        },
+        "model": {
+          "name": "Model",
+          "description": "The model to use for generation."
+        }
+      }
+    }
+  }
+}

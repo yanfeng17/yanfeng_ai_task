@@ -1,0 +1,13 @@
+{
+  "domain": "yanfeng_ai_task",
+  "name": "Yanfeng AI Task",
+  "version": "1.0.0",
+  "after_dependencies": ["assist_pipeline", "intent"],
+  "codeowners": ["@yanfeng"],
+  "config_flow": true,
+  "dependencies": ["conversation", "ai_task"],
+  "documentation": "https://github.com/yanfeng/yanfeng_ai_task",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "requirements": ["requests>=2.25.1", "aiohttp>=3.8.0"]
+}
