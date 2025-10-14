@@ -13,13 +13,15 @@ from homeassistant.config_entries import (
     ConfigFlowResult,
     OptionsFlow,
 )
-from homeassistant.const import CONF_API_KEY
+from homeassistant.const import CONF_API_KEY, CONF_LLM_HASS_API
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import llm
 from homeassistant.helpers.selector import (
     SelectSelector,
     SelectSelectorConfig,
     SelectSelectorMode,
+    TemplateSelector,
     TextSelector,
     TextSelectorConfig,
     TextSelectorType,
@@ -155,27 +157,46 @@ class YanfengAITaskConfigFlow(ConfigFlow, domain=DOMAIN):
 class YanfengAITaskOptionsFlow(OptionsFlow):
     """Yanfeng AI Task config flow options handler."""
 
-    def __init__(self, config_entry: ConfigEntry) -> None:
-        """Initialize options flow."""
-        self.config_entry = config_entry
-
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Manage the options."""
         if user_input is not None:
+            # Handle LLM_HASS_API - remove if empty
+            if not user_input.get(CONF_LLM_HASS_API):
+                user_input.pop(CONF_LLM_HASS_API, None)
             return self.async_create_entry(title="", data=user_input)
 
-        options = self.config_entry.options
-        
+        # Use self._get_entry() to access config_entry (new method)
+        options = self._get_entry().options
+
+        # Get available LLM APIs
+        hass_apis = [
+            {"label": api.name, "value": api.id}
+            for api in llm.async_get_apis(self.hass)
+        ]
+
+        # Get suggested values for LLM_HASS_API
+        suggested_llm_apis = options.get(CONF_LLM_HASS_API)
+        if isinstance(suggested_llm_apis, str):
+            suggested_llm_apis = [suggested_llm_apis]
+
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(
                 {
                     vol.Optional(
                         CONF_PROMPT,
-                        default=options.get(CONF_PROMPT, DEFAULT_PROMPT),
-                    ): TextSelector(TextSelectorConfig(multiline=True)),
+                        description={
+                            "suggested_value": options.get(CONF_PROMPT, DEFAULT_PROMPT)
+                        },
+                    ): TemplateSelector(),
+                    vol.Optional(
+                        CONF_LLM_HASS_API,
+                        description={"suggested_value": suggested_llm_apis},
+                    ): SelectSelector(
+                        SelectSelectorConfig(options=hass_apis, multiple=True)
+                    ),
                     vol.Optional(
                         CONF_CHAT_MODEL,
                         default=options.get(CONF_CHAT_MODEL, RECOMMENDED_CHAT_MODEL),

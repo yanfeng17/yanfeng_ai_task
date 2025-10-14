@@ -2,6 +2,8 @@
 
 import logging
 
+from homeassistant.helpers import llm
+
 DOMAIN = "yanfeng_ai_task"
 LOGGER = logging.getLogger(__package__)
 
@@ -42,11 +44,16 @@ SUPPORTED_CHAT_MODELS = [
 
 SUPPORTED_IMAGE_MODELS = [
     "Qwen/Qwen-Image",
-    "MusePublic/Qwen-Image-Edit",
+    "MusePublic/Qwen-Image-Edit",  # Requires input image
     "stable-diffusion-v1-5",
     "stable-diffusion-xl-base-1-0",
     "AI-ModelScope/stable-diffusion-v1-5",
     "AI-ModelScope/stable-diffusion-xl-base-1.0",
+]
+
+# Models that require an input image for editing
+IMAGE_EDITING_MODELS = [
+    "MusePublic/Qwen-Image-Edit",
 ]
 
 # Recommended models

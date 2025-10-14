@@ -17,6 +17,7 @@ from .const import (
     CONF_CHAT_MODEL,
     CONF_IMAGE_MODEL,
     CONF_RECOMMENDED,
+    IMAGE_EDITING_MODELS,
     LOGGER,
     RECOMMENDED_CHAT_MODEL,
     RECOMMENDED_IMAGE_MODEL,
@@ -142,7 +143,7 @@ class YanfengAITaskEntity(
 
         # Extract prompt from the last user message
         prompt = ""
-        image_url = None
+        image_attachment_path = None
 
         for content in reversed(chat_log.content):
             if isinstance(content, conversation.UserContent):
@@ -153,19 +154,9 @@ class YanfengAITaskEntity(
                     for attachment in content.attachments:
                         # Check if it's an image attachment
                         if attachment.mime_type and attachment.mime_type.startswith("image/"):
-                            # For now, use the attachment path as a placeholder
-                            # In production, you might need to upload this to a public URL
-                            # or convert to base64 data URL
-                            import base64
-                            try:
-                                with open(attachment.path, 'rb') as img_file:
-                                    image_data = base64.b64encode(img_file.read()).decode('utf-8')
-                                    image_url = f"data:{attachment.mime_type};base64,{image_data}"
-                                    LOGGER.debug("Found image attachment for editing: %s", attachment.path)
-                                    break
-                            except Exception as err:
-                                LOGGER.error("Failed to read image attachment %s: %s",
-                                           attachment.path, err)
+                            image_attachment_path = attachment.path
+                            LOGGER.debug("Found image attachment for editing: %s", attachment.path)
+                            break
                 break
 
         if not prompt:
@@ -178,8 +169,45 @@ class YanfengAITaskEntity(
             or RECOMMENDED_IMAGE_MODEL
         )
 
-        LOGGER.debug("Using image model: %s for prompt: %s (with image: %s)",
-                    image_model, prompt[:100], "yes" if image_url else "no")
+        # Handle image URL for editing models
+        image_url = None
+
+        # First, try to extract URL from prompt text
+        import re
+        url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
+        url_matches = re.findall(url_pattern, prompt)
+
+        if url_matches:
+            # Use the first URL found as the image URL
+            image_url = url_matches[0]
+            # Remove the URL from the prompt
+            prompt = re.sub(url_pattern, '', prompt).strip()
+            LOGGER.info("Extracted image URL from prompt: %s", image_url)
+        elif image_attachment_path and image_model in IMAGE_EDITING_MODELS:
+            # Upload the local file to ModelScope
+            try:
+                LOGGER.info("Uploading image attachment to ModelScope: %s", image_attachment_path)
+                image_url = await self.client.upload_file(
+                    str(image_attachment_path),
+                    "image/jpeg"  # Default to JPEG, ModelScope should auto-detect
+                )
+                LOGGER.info("Image uploaded successfully: %s", image_url)
+            except Exception as err:
+                LOGGER.error("Failed to upload image: %s", err)
+                raise HomeAssistantError(
+                    f"Failed to upload image for editing: {err}. "
+                    f"Alternatively, you can provide a public image URL in your prompt."
+                ) from err
+
+        # Check if editing model is used without an image URL
+        if not image_url and image_model in IMAGE_EDITING_MODELS:
+            LOGGER.warning(
+                f"{image_model} is an image editing model but no image provided. "
+                f"Will attempt generation, but may fail."
+            )
+
+        LOGGER.debug("Using image model: %s for prompt: %s (image_url: %s)",
+                    image_model, prompt[:100], image_url or "none")
 
         try:
             # Use image generation model
@@ -222,4 +250,9 @@ class YanfengAITaskEntity(
 
         except Exception as err:
             LOGGER.error("Error generating image: %s", err)
+            if image_model in IMAGE_EDITING_MODELS and not image_url:
+                raise HomeAssistantError(
+                    f"{image_model} requires an input image. "
+                    f"Please attach an image or include a public image URL in your prompt."
+                ) from err
             raise HomeAssistantError(f"Error generating image: {err}") from err

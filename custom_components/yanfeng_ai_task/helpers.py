@@ -97,6 +97,77 @@ class ModelScopeAPIClient:
             LOGGER.error("Failed to decode ModelScope JSON response: %s", err)
             raise HomeAssistantError(ERROR_INVALID_RESPONSE) from err
 
+    async def upload_file(
+        self,
+        file_path: str,
+        mime_type: str | None = None,
+    ) -> str:
+        """Upload a file to ModelScope and return the public URL.
+
+        Args:
+            file_path: Path to the local file
+            mime_type: MIME type of the file
+
+        Returns:
+            Public URL of the uploaded file
+        """
+        import aiofiles
+
+        if mime_type is None:
+            import mimetypes
+            mime_type = mimetypes.guess_type(file_path)[0] or "application/octet-stream"
+
+        try:
+            # Read file content
+            async with aiofiles.open(file_path, 'rb') as f:
+                file_data = await f.read()
+
+            # Upload to ModelScope file API
+            url = f"{self.modelscope_base_url}v1/files"
+
+            # Create multipart form data
+            import aiohttp
+            form = aiohttp.FormData()
+            form.add_field('file',
+                          file_data,
+                          filename=file_path.split('/')[-1],
+                          content_type=mime_type)
+
+            LOGGER.debug("Uploading file to ModelScope: %s (type: %s)", file_path, mime_type)
+
+            async with self.session.post(
+                url,
+                headers={"Authorization": f"Bearer {self.api_key}"},
+                data=form,
+            ) as response:
+                if response.status != 200:
+                    error_text = await response.text()
+                    LOGGER.error(
+                        "ModelScope file upload error: %s - %s", response.status, error_text
+                    )
+                    raise HomeAssistantError(f"Failed to upload file: {response.status}")
+
+                result = await response.json()
+                LOGGER.debug("File upload response: %s", result)
+
+                # Extract file URL from response
+                if "url" in result:
+                    return result["url"]
+                elif "file_url" in result:
+                    return result["file_url"]
+                elif "data" in result and "url" in result["data"]:
+                    return result["data"]["url"]
+                else:
+                    LOGGER.error("No URL in upload response: %s", result)
+                    raise HomeAssistantError("File upload succeeded but no URL returned")
+
+        except aiohttp.ClientError as err:
+            LOGGER.error("Network error uploading file: %s", err)
+            raise HomeAssistantError(f"Network error uploading file: {err}") from err
+        except Exception as err:
+            LOGGER.error("Error uploading file: %s", err)
+            raise HomeAssistantError(f"Error uploading file: {err}") from err
+
     async def generate_image(
         self,
         model: str,
