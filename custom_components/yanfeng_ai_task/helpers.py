@@ -173,6 +173,7 @@ class ModelScopeAPIClient:
         model: str,
         prompt: str,
         image_url: str | None = None,
+        image_path: str | None = None,
         size: str = "1024x1024",
         quality: str = "standard",
         n: int = 1,
@@ -183,6 +184,7 @@ class ModelScopeAPIClient:
             model: The model ID to use for image generation
             prompt: The text prompt for image generation/editing
             image_url: Optional input image URL for image editing models
+            image_path: Optional local file path (will be converted to base64)
             size: Image size (default: 1024x1024)
             quality: Image quality (default: standard)
             n: Number of images to generate (default: 1)
@@ -197,6 +199,20 @@ class ModelScopeAPIClient:
         if image_url:
             payload["image_url"] = image_url
             LOGGER.debug("Using image_url for image editing: %s", image_url)
+        elif image_path:
+            # Try converting local file to base64 data URL
+            try:
+                import base64
+                with open(image_path, 'rb') as f:
+                    image_data = base64.b64encode(f.read()).decode('utf-8')
+                # Guess mime type
+                import mimetypes
+                mime_type = mimetypes.guess_type(image_path)[0] or "image/jpeg"
+                payload["image_url"] = f"data:{mime_type};base64,{image_data}"
+                LOGGER.debug("Converted local file to base64 data URL: %s", image_path)
+            except Exception as err:
+                LOGGER.error("Failed to read local image file: %s", err)
+                raise HomeAssistantError(f"Failed to read image file: {err}") from err
 
         try:
             # Step 1: Submit image generation task
@@ -206,7 +222,8 @@ class ModelScopeAPIClient:
                 "X-ModelScope-Async-Mode": "true"
             }
 
-            LOGGER.debug("Submitting ModelScope image task to %s with payload: %s", url, payload)
+            LOGGER.debug("Submitting ModelScope image task to %s with payload keys: %s",
+                        url, list(payload.keys()))
 
             async with self.session.post(
                 url,
