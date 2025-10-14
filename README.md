@@ -44,6 +44,7 @@
 - **Qwen/Qwen-Image** - Qwen 图像生成（推荐）
 - **stable-diffusion-v1-5** - Stable Diffusion 1.5
 - **stable-diffusion-xl-base-1-0** - SDXL 基础模型
+- MusePublic/Qwen-Image-Edit Qwen 图像编辑
 
 ## 📦 安装
 
