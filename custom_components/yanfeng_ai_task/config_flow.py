@@ -11,7 +11,9 @@ from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlow,
     ConfigFlowResult,
+    ConfigSubentryFlow,
     OptionsFlow,
+    SubentryFlowResult,
 )
 from homeassistant.const import CONF_API_KEY, CONF_LLM_HASS_API
 from homeassistant.core import HomeAssistant, callback
@@ -88,7 +90,8 @@ class InvalidAuth(HomeAssistantError):
 class YanfengAITaskConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Yanfeng AI Task."""
 
-    VERSION = 1
+    VERSION = 2
+    MINOR_VERSION = 1
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -105,7 +108,25 @@ class YanfengAITaskConfigFlow(ConfigFlow, domain=DOMAIN):
                 LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
             else:
-                return self.async_create_entry(title=info["title"], data=user_input)
+                # Create entry with subentries for both conversation and ai_task
+                return self.async_create_entry(
+                    title=info["title"],
+                    data=user_input,
+                    subentries=[
+                        {
+                            "subentry_type": "conversation",
+                            "data": user_input,
+                            "title": DEFAULT_AI_TASK_NAME + " Conversation",
+                            "unique_id": None,
+                        },
+                        {
+                            "subentry_type": "ai_task_data",
+                            "data": RECOMMENDED_AI_TASK_OPTIONS,
+                            "title": DEFAULT_AI_TASK_NAME,
+                            "unique_id": None,
+                        },
+                    ],
+                )
 
         return self.async_show_form(
             step_id="user",
@@ -144,6 +165,115 @@ class YanfengAITaskConfigFlow(ConfigFlow, domain=DOMAIN):
             ),
             errors=errors,
         )
+
+    @classmethod
+    @callback
+    def async_get_supported_subentry_types(
+        cls, config_entry: ConfigEntry
+    ) -> dict[str, type[ConfigSubentryFlow]]:
+        """Return subentries supported by this integration."""
+        return {
+            "conversation": YanfengAISubentryFlowHandler,
+            "ai_task_data": YanfengAISubentryFlowHandler,
+        }
+
+
+class YanfengAISubentryFlowHandler(ConfigSubentryFlow):
+    """Flow for managing subentries."""
+
+    async def async_step_set_options(
+        self, user_input: dict[str, Any] | None = None
+    ) -> SubentryFlowResult:
+        """Set options."""
+        if user_input is not None:
+            # Handle LLM_HASS_API - remove if empty
+            if not user_input.get(CONF_LLM_HASS_API):
+                user_input.pop(CONF_LLM_HASS_API, None)
+            return self.async_create_subentry(data=user_input)
+
+        # Get current subentry data
+        if self.source == "user":
+            # New subentry
+            if self._subentry_type == "ai_task_data":
+                options = RECOMMENDED_AI_TASK_OPTIONS.copy()
+            else:
+                options = {}
+        else:
+            # Reconfiguring existing subentry
+            options = self._get_reconfigure_subentry().data.copy()
+
+        # Get available LLM APIs
+        hass_apis = [
+            {"label": api.name, "value": api.id}
+            for api in llm.async_get_apis(self.hass)
+        ]
+
+        # Get suggested values for LLM_HASS_API
+        suggested_llm_apis = options.get(CONF_LLM_HASS_API)
+        if isinstance(suggested_llm_apis, str):
+            suggested_llm_apis = [suggested_llm_apis]
+
+        return self.async_show_form(
+            step_id="set_options",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_PROMPT,
+                        description={
+                            "suggested_value": options.get(CONF_PROMPT, DEFAULT_PROMPT)
+                        },
+                    ): TemplateSelector(),
+                    vol.Optional(
+                        CONF_LLM_HASS_API,
+                        description={"suggested_value": suggested_llm_apis},
+                    ): SelectSelector(
+                        SelectSelectorConfig(options=hass_apis, multiple=True)
+                    ),
+                    vol.Optional(
+                        CONF_CHAT_MODEL,
+                        default=options.get(CONF_CHAT_MODEL, RECOMMENDED_CHAT_MODEL),
+                    ): SelectSelector(
+                        SelectSelectorConfig(
+                            options=SUPPORTED_CHAT_MODELS,
+                            mode=SelectSelectorMode.DROPDOWN,
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_IMAGE_MODEL,
+                        default=options.get(CONF_IMAGE_MODEL, RECOMMENDED_IMAGE_MODEL),
+                    ): SelectSelector(
+                        SelectSelectorConfig(
+                            options=SUPPORTED_IMAGE_MODELS,
+                            mode=SelectSelectorMode.DROPDOWN,
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_TEMPERATURE,
+                        default=options.get(CONF_TEMPERATURE, DEFAULT_TEMPERATURE),
+                    ): vol.All(vol.Coerce(float), vol.Range(min=0, max=2)),
+                    vol.Optional(
+                        CONF_TOP_P,
+                        default=options.get(CONF_TOP_P, DEFAULT_TOP_P),
+                    ): vol.All(vol.Coerce(float), vol.Range(min=0, max=1)),
+                    vol.Optional(
+                        CONF_MAX_TOKENS,
+                        default=options.get(CONF_MAX_TOKENS, DEFAULT_MAX_TOKENS),
+                    ): vol.All(vol.Coerce(int), vol.Range(min=1, max=8192)),
+                }
+            ),
+        )
+
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> SubentryFlowResult:
+        """Handle user step."""
+        return await self.async_step_set_options(user_input)
+
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> SubentryFlowResult:
+        """Handle reconfigure step."""
+        return await self.async_step_set_options(user_input)
 
     @staticmethod
     @callback
