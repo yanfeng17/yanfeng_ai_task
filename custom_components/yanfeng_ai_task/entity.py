@@ -81,7 +81,7 @@ class YanfengAIBaseEntity:
             name=subentry.title,
             manufacturer="Yanfeng",
             model="AI Task Integration",
-            sw_version="2.2.1",
+            sw_version="2.2.2",
             entry_type=dr.DeviceEntryType.SERVICE,
         )
 
