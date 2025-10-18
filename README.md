@@ -22,6 +22,8 @@
 ## ✨ 功能特性
 
 - 🤖 **对话代理** - 支持中文和多语言自然语言对话
+- ⚡ **三层智能处理** - 第一层快速意图识别（50-200ms）+ AI 理解 + 深度对话
+- 🎚️ **响应模式配置** - 友好模式/静音模式/简单确认，个性化体验
 - 📝 **AI 任务生成数据** - 生成文本、结构化 JSON 数据
 - 🖼️ **图像生成** - 使用 ModelScope 图像模型生成图片
 - 👁️ **图像识别** - 支持视觉模型识别图片内容
@@ -30,21 +32,51 @@
 
 ## 🎯 支持的模型
 
-### 文本模型
-- **Qwen/Qwen2.5-72B-Instruct** - 最强大的对话模型（推荐）
-- **Qwen/Qwen2.5-32B-Instruct** - 高性能平衡模型
-- **Qwen/Qwen2.5-14B-Instruct** - 中等规模模型
-- **Qwen/Qwen2.5-7B-Instruct** - 快速响应模型
+### 内置预设模型
 
-### 视觉模型
-- **Qwen/Qwen3-VL-235B-A22B-Instruct** - 最新视觉语言模型（推荐）
-- **Qwen/Qwen2-VL-72B-Instruct** - 高性能视觉模型
+#### 文本对话模型
+- **Qwen/Qwen2.5-72B-Instruct** ⭐ 推荐
+  - 最强大的对话模型
+  - 最佳 Function Calling 支持
+  - 适合设备控制和复杂任务
 
-### 图像生成模型
-- **Qwen/Qwen-Image** - Qwen 图像生成（推荐）
-- **stable-diffusion-v1-5** - Stable Diffusion 1.5
-- **stable-diffusion-xl-base-1-0** - SDXL 基础模型
-- MusePublic/Qwen-Image-Edit Qwen 图像编辑
+- **Qwen/Qwen3-32B**
+  - 支持推理（Reasoning）功能
+  - 适合复杂逻辑推理任务
+  - 查看 [QWEN3_MODELS_GUIDE.md](QWEN3_MODELS_GUIDE.md) 了解详情
+
+#### 视觉语言模型
+- **Qwen/Qwen3-VL-235B-A22B-Instruct** ⭐ 推荐
+  - 最新视觉语言模型
+  - 支持图像识别和理解
+  - 支持多模态输入（文本 + 图像）
+  - ⚠️ **注意**：VL 模型的 Function Calling 支持不如纯文本模型
+
+#### 图像生成模型
+- **Qwen/Qwen-Image** ⭐ 推荐
+  - Qwen 官方图像生成模型
+  - 中文提示词支持良好
+  - 异步任务处理（自动轮询）
+
+### 自定义模型支持 🎨
+
+除了内置预设模型，您还可以使用 **任何 ModelScope 平台支持的模型**：
+
+**如何使用自定义模型**：
+1. 进入配置界面：设置 → 设备与服务 → Yanfeng AI Task
+2. 在 **"Custom Chat Model"** 或 **"Custom Image Model"** 字段输入完整的模型 ID
+3. 例如：`Qwen/QwQ-32B-Preview`、`Qwen/Qwen2.5-14B-Instruct` 等
+
+**注意事项**：
+- ⚠️ 自定义模型需要在 ModelScope 平台支持 Chat Completions API
+- ⚠️ 某些模型可能需要特殊参数（如 Qwen3/QwQ 系列）
+- ⚠️ Function Calling 功能依赖模型支持
+- 💡 推荐使用纯文本模型进行设备控制
+
+**参考资源**：
+- [ModelScope 模型库](https://modelscope.cn/models)
+- [Qwen3 模型使用指南](QWEN3_MODELS_GUIDE.md)
+- [自定义模型功能说明](CUSTOM_MODEL_FEATURE.md)
 
 ## 📦 安装
 
@@ -85,6 +117,96 @@
    - **温度**: 0.7
    - **Max Tokens**: 2048
 6. 完成配置
+
+## 🎯 三层智能处理机制
+
+Yanfeng AI Task 采用创新的三层处理架构，结合快速响应和深度理解：
+
+### 第一层：快速意图识别（50-200ms）⚡
+
+**特点**：
+- 基于关键词匹配的快速检测
+- 不调用 LLM，极速响应
+- 适合简单的设备控制命令
+
+**支持的命令**：
+```
+✅ "打开客厅灯"          → 50-200ms 快速执行
+✅ "关闭卧室空调"        → 50-200ms 快速执行
+✅ "请帮我开启风扇"      → 50-200ms 快速执行
+✅ "把台灯打开"          → 50-200ms 快速执行
+```
+
+**工作原理**：
+1. 检测控制关键词（打开、关闭、启动、停止等）
+2. 提取设备名称（通过 friendly_name、entity_id、alias 匹配）
+3. 直接调用 Home Assistant 服务
+4. 根据配置返回响应
+
+### 第二/三层：AI 理解与深度对话（1-3秒）🤖
+
+**特点**：
+- 使用 LLM 进行语义理解
+- 支持复杂任务和工具调用
+- 智能上下文对话
+
+**支持的场景**：
+```
+⚡ "把空调调到26度"       → AI 理解 + 工具调用
+⚡ "关闭所有窗帘"         → AI 理解 + 批量操作
+⚡ "我感觉有点热"         → AI 理解意图 + 建议
+⚡ "今天天气怎么样"       → 深度对话
+```
+
+### 响应模式配置 🎚️
+
+根据个人喜好选择第一层的响应方式：
+
+#### 1️⃣ 友好模式（推荐）
+```
+用户："帮我关闭台灯"
+系统："已关闭台灯"（有 friendly_name 时）
+      或 *提示音*（无 friendly_name 时）
+```
+
+**特点**：
+- 智能判断，有名称时说话，无名称时静音
+- 用户体验好，反馈清晰
+- **默认模式** ✅
+
+#### 2️⃣ 静音模式
+```
+用户："帮我关闭台灯"
+系统：*提示音*（无语音）
+```
+
+**特点**：
+- 完全模仿 HAOS 内置意图
+- 极简主义，只播放音效
+- 适合追求极致简洁的用户
+
+#### 3️⃣ 简单确认
+```
+用户："帮我关闭台灯"
+系统："完成"
+```
+
+**特点**：
+- 简短明确的文字反馈
+- 不依赖设备名称
+- 快速确认操作成功
+
+### 性能对比
+
+| 处理层级 | 响应时间 | 适用场景 | 是否调用 LLM |
+|---------|---------|---------|------------|
+| **第一层** | 50-200ms | 简单设备控制 | ❌ 否 |
+| **第二/三层** | 1-3秒 | 复杂任务、对话 | ✅ 是 |
+
+**效率提升**：
+- 简单命令响应速度提升 **5-15倍**
+- 减少 LLM API 调用，降低成本
+- 保持复杂任务的完整 AI 能力
 
 ## 🚀 使用示例
 
@@ -187,6 +309,8 @@ automation:
 
 ## 📋 配置选项
 
+### 基础配置
+
 | 选项 | 描述 | 默认值 | 范围 |
 |------|------|--------|------|
 | API Key | ModelScope API Token | 必填 | - |
@@ -194,7 +318,20 @@ automation:
 | 温度 | 控制回答的随机性 | 0.7 | 0.0 - 2.0 |
 | Top P | 核采样参数 | 0.9 | 0.0 - 1.0 |
 | 最大令牌数 | 单次回答的最大长度 | 2048 | 1 - 8192 |
-| 提示词 | 系统提示词 | "You are a helpful assistant." | 自定义文本 |
+| 提示词 | 系统提示词 | 中文优化提示词 | 自定义文本 |
+
+### 响应模式配置（第一层快速响应）
+
+| 模式 | 描述 | 适用场景 |
+|------|------|---------|
+| **友好模式**（默认）| 有 friendly_name 时说话，否则静音 | 推荐给大多数用户 |
+| **静音模式** | 总是静音，只播放提示音 | 追求极简体验 |
+| **简单确认** | 总是返回"完成" | 需要明确反馈 |
+
+**配置位置**：
+```
+设置 → 设备与服务 → Yanfeng AI Task → 配置 → 响应模式
+```
 
 ## 🔧 高级功能
 
@@ -252,6 +389,33 @@ structure:
 - 使用更详细的字段描述
 - 尝试使用更强大的模型
 
+### 问题5：第一层意图识别不工作
+**症状**：简单命令也很慢（>1秒）
+**解决方案**：
+- 检查命令是否包含控制关键词（打开、关闭等）
+- 查看日志确认是否匹配到第一层
+- 确认设备的 `friendly_name` 是否正确
+- 尝试使用更简单的命令格式
+
+**日志示例**：
+```
+# 成功匹配第一层
+DEBUG: 🔍 Layer 1: Detected potential service call: 打开客厅灯
+INFO: ✅ Layer 1: Service call matched - executing light.turn_on
+DEBUG: Layer 1: Executed successfully in <200ms
+
+# 未匹配第一层，转到 AI 处理
+DEBUG: ⚠️ Layer 1: Not a service call, proceeding to Layer 2/3 (AI processing)
+```
+
+### 问题6：响应模式配置不生效
+**症状**：修改响应模式后无变化
+**解决方案**：
+- 重启 Home Assistant
+- 检查配置是否保存成功
+- 查看日志确认使用的模式
+- 清除浏览器缓存
+
 ### 启用调试日志
 
 在 `configuration.yaml` 中添加：
@@ -261,6 +425,7 @@ logger:
   default: info
   logs:
     custom_components.yanfeng_ai_task: debug
+    custom_components.yanfeng_ai_task.conversation: debug  # 第一层调试
     homeassistant.components.conversation: debug
     homeassistant.components.ai_task: debug
 ```
@@ -272,16 +437,52 @@ tail -f /config/home-assistant.log | grep yanfeng
 
 ## 📊 性能优化
 
+### 利用三层处理机制
+
+**最佳实践**：
+```
+# ✅ 推荐：简单明确的命令（第一层处理）
+"打开客厅灯"          → 50-200ms
+"关闭卧室空调"        → 50-200ms
+
+# ⚡ 可优化：可以简化的命令
+"帮我把客厅的那个灯打开" → 可简化为 "打开客厅灯"
+"能不能关一下空调"      → 可简化为 "关闭空调"
+
+# 🤖 适合 AI：需要理解的命令
+"我有点热"            → AI 理解意图
+"晚安"                → AI 执行晚安场景
+```
+
+**优化建议**：
+1. 为设备设置清晰的 `friendly_name`（如"客厅灯"而非"light_1"）
+2. 使用简单直接的命令格式
+3. 复杂任务交给 AI 处理，不强求第一层匹配
+
 ### 选择合适的模型
-- **快速响应**: Qwen2.5-7B-Instruct
-- **平衡**: Qwen2.5-32B-Instruct
-- **最佳质量**: Qwen2.5-72B-Instruct
-- **视觉任务**: Qwen3-VL-235B-A22B-Instruct
+
+**根据任务类型选择**：
+- **设备控制与对话**: Qwen/Qwen2.5-72B-Instruct ⭐ (最佳 Function Calling)
+- **复杂推理任务**: Qwen/Qwen3-32B（支持思考模式）
+- **视觉任务**: Qwen/Qwen3-VL-235B-A22B-Instruct
+
+**自定义模型示例**：
+- `Qwen/Qwen2.5-32B-Instruct` - 中等规模，性能平衡
+- `Qwen/Qwen2.5-14B-Instruct` - 较小规模，响应快
+- `Qwen/Qwen2.5-7B-Instruct` - 最小规模，极速响应
+- `Qwen/QwQ-32B-Preview` - 推理增强模型
+
+**注意**：使用自定义模型时，请在配置界面的 "Custom Chat Model" 字段输入完整的模型 ID。
 
 ### 调整参数
 - **降低 temperature** (0.3-0.5): 更准确、一致的回答
 - **提高 temperature** (0.8-1.0): 更创造性的回答
 - **减少 max_tokens**: 更快的响应速度
+
+### 响应模式选择
+- **家庭用户**: 友好模式（默认）- 清晰友好
+- **极简主义**: 静音模式 - 快速简洁
+- **移动端**: 简单确认 - 明确反馈
 
 ## 📚 更多资源
 
@@ -308,6 +509,7 @@ tail -f /config/home-assistant.log | grep yanfeng
 - [Home Assistant](https://www.home-assistant.io/) - 智能家居平台
 - [ModelScope](https://modelscope.cn/) - AI 模型服务
 - [Qwen Team](https://github.com/QwenLM) - 强大的语言模型
+- [智谱AI集成](https://github.com/knoop7/zhipuai) - 三层架构设计灵感来源
 
 ## 📞 联系作者或打赏感谢
 <p align="center">

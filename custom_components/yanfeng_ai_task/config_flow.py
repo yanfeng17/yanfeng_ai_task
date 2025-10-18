@@ -37,12 +37,14 @@ from .const import (
     CONF_MAX_TOKENS,
     CONF_PROMPT,
     CONF_RECOMMENDED,
+    CONF_RESPONSE_MODE,
     CONF_TEMPERATURE,
     CONF_TOP_P,
     DEFAULT_AI_TASK_NAME,
     DEFAULT_CONVERSATION_NAME,
     DEFAULT_MAX_TOKENS,
     DEFAULT_PROMPT,
+    DEFAULT_RESPONSE_MODE,
     DEFAULT_TEMPERATURE,
     DEFAULT_TITLE,
     DEFAULT_TOP_P,
@@ -52,6 +54,7 @@ from .const import (
     RECOMMENDED_CHAT_MODEL,
     RECOMMENDED_CONVERSATION_OPTIONS,
     RECOMMENDED_IMAGE_MODEL,
+    RESPONSE_MODES,
     SUPPORTED_CHAT_MODELS,
     SUPPORTED_IMAGE_MODELS,
     TIMEOUT_SECONDS,
@@ -268,6 +271,19 @@ class YanfengAISubentryFlowHandler(ConfigSubentryFlow):
                         SelectSelectorConfig(options=hass_apis, multiple=True)
                     ),
                     vol.Optional(
+                        CONF_RESPONSE_MODE,
+                        default=options.get(CONF_RESPONSE_MODE, DEFAULT_RESPONSE_MODE),
+                    ): SelectSelector(
+                        SelectSelectorConfig(
+                            options=[
+                                {"label": "友好模式（推荐）", "value": "friendly"},
+                                {"label": "静音模式", "value": "silent"},
+                                {"label": "简单确认", "value": "simple"},
+                            ],
+                            mode=SelectSelectorMode.DROPDOWN,
+                        )
+                    ),
+                    vol.Optional(
                         CONF_CHAT_MODEL,
                         default=options.get(CONF_CHAT_MODEL, RECOMMENDED_CHAT_MODEL),
                     ): SelectSelector(
@@ -376,6 +392,19 @@ class YanfengAITaskOptionsFlow(OptionsFlow):
                         description={"suggested_value": suggested_llm_apis},
                     ): SelectSelector(
                         SelectSelectorConfig(options=hass_apis, multiple=True)
+                    ),
+                    vol.Optional(
+                        CONF_RESPONSE_MODE,
+                        default=options.get(CONF_RESPONSE_MODE, DEFAULT_RESPONSE_MODE),
+                    ): SelectSelector(
+                        SelectSelectorConfig(
+                            options=[
+                                {"label": "友好模式（推荐）", "value": "friendly"},
+                                {"label": "静音模式", "value": "silent"},
+                                {"label": "简单确认", "value": "simple"},
+                            ],
+                            mode=SelectSelectorMode.DROPDOWN,
+                        )
                     ),
                     vol.Optional(
                         CONF_CHAT_MODEL,

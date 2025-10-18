@@ -20,6 +20,7 @@ CONF_CUSTOM_CHAT_MODEL = "custom_chat_model"  # 自定义聊天模型
 CONF_IMAGE_MODEL = "image_model"
 CONF_CUSTOM_IMAGE_MODEL = "custom_image_model"  # 自定义图像模型
 CONF_RECOMMENDED = "recommended"
+CONF_RESPONSE_MODE = "response_mode"  # 第一层响应模式
 
 # Default values
 DEFAULT_TITLE = "Yanfeng AI Task"
@@ -28,6 +29,7 @@ DEFAULT_CONVERSATION_NAME = "Yanfeng AI Conversation"
 DEFAULT_TEMPERATURE = 0.7
 DEFAULT_TOP_P = 0.9
 DEFAULT_MAX_TOKENS = 2048
+DEFAULT_RESPONSE_MODE = "friendly"  # 默认响应模式：友好模式
 
 # Default Chinese-optimized prompt for Home Assistant
 DEFAULT_PROMPT = """你是一个专业的智能家居助手，运行在 Home Assistant 系统中。
@@ -89,10 +91,22 @@ RECOMMENDED_IMAGE_MODEL = "Qwen/Qwen-Image"
 TASK_POLL_INTERVAL = 2  # seconds
 TASK_MAX_WAIT_TIME = 300  # 5 minutes
 
+# Response modes for Layer 1 (first-layer intent recognition)
+RESPONSE_MODE_FRIENDLY = "friendly"  # 有 friendly_name 时说话，否则静音
+RESPONSE_MODE_SILENT = "silent"      # 总是静音，只播提示音
+RESPONSE_MODE_SIMPLE = "simple"      # 总是返回简单确认（"好的"、"完成"）
+
+RESPONSE_MODES = [
+    RESPONSE_MODE_FRIENDLY,
+    RESPONSE_MODE_SILENT,
+    RESPONSE_MODE_SIMPLE,
+]
+
 # Recommended options for Conversation
 RECOMMENDED_CONVERSATION_OPTIONS = {
     CONF_PROMPT: DEFAULT_PROMPT,  # Use Chinese-optimized prompt
     CONF_LLM_HASS_API: [llm.LLM_API_ASSIST],  # Enable device control
+    CONF_RESPONSE_MODE: DEFAULT_RESPONSE_MODE,  # Default response mode
     CONF_RECOMMENDED: True,
 }
 
