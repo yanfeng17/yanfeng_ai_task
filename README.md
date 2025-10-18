@@ -231,12 +231,58 @@ response_variable: poem
 
 ### 3. 图像生成
 
+#### 3.1 基础文生图
+
 ```yaml
 action: ai_task.generate_image
 data:
   prompt: 一只可爱的小猫在花园里玩耍
   entity_id: ai_task.yanfeng_ai_task
 ```
+
+#### 3.2 本地图像编辑（新功能） ✨
+
+支持上传本地图像进行图像编辑：
+
+```yaml
+action: ai_task.generate_image
+data:
+  prompt: 将图片转换为吉卜力工作室风格
+  attachments:
+    - media_content_id: media-source://image_upload/your_image_id
+      mime_type: image/jpeg
+  entity_id: ai_task.yanfeng_ai_task
+```
+
+**工作原理**：
+1. 自动上传本地图像到 ModelScope 服务
+2. 获得公开 URL
+3. 使用 Qwen-Image 编辑模型进行图像处理
+4. 返回编辑后的图像
+
+**支持的编辑操作**：
+- 风格转换（吉卜力风格、油画风格、卡通风格等）
+- 场景改变（室内改户外、白天改夜晚等）
+- 物体编辑（添加或移除物体）
+- 文字添加
+- 图像增强（清晰度、色彩等）
+
+**例子**：
+```yaml
+# 转换风格
+prompt: "将此图片转换为水彩画风格"
+
+# 改变场景
+prompt: "把这个室内场景改为户外春天环境"
+
+# 添加元素
+prompt: "给图片中的人物添加一顶帽子"
+```
+
+**注意**：
+- 首次使用时会自动上传文件到 ModelScope（可能需要几秒钟）
+- 需要确保 Home Assistant 能访问图像文件
+- 支持的图像格式：JPEG、PNG、WEBP
 
 ### 4. 图像识别
 
@@ -415,6 +461,35 @@ DEBUG: ⚠️ Layer 1: Not a service call, proceeding to Layer 2/3 (AI processin
 - 检查配置是否保存成功
 - 查看日志确认使用的模式
 - 清除浏览器缓存
+
+### 问题7：图像生成/编辑失败 ⚠️（新增）
+**症状**：收到错误 "Error generating image: ModelScope Image API error: 500"
+**原因**：本地图像文件需要先上传到 ModelScope API
+**解决方案**：
+- 确保使用支持图像编辑的模型（如 Qwen/Qwen-Image）
+- 检查图像文件格式是否支持（JPEG、PNG、WEBP）
+- 检查 ModelScope API 是否正常工作
+- 查看日志中是否看到 "Uploaded local file to ModelScope" 消息
+
+**日志示例（成功）**：
+```
+DEBUG: Uploaded local file to ModelScope, using URL: https://...
+DEBUG: Submitting ModelScope image task to v1/images/generations
+```
+
+**日志示例（失败）**：
+```
+ERROR: Failed to upload local image file: [error message]
+ERROR: ModelScope Image API error: 500
+```
+
+### 问题8：图像上传缓慢
+**症状**：图像编辑请求需要很长时间
+**原因**：首次上传文件到 ModelScope 服务需要时间
+**解决方案**：
+- 这是正常的，首次上传通常需要 2-5 秒
+- 缩小图像尺寸以加快上传速度
+- 确保网络连接稳定
 
 ### 启用调试日志
 
