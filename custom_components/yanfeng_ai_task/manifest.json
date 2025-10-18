@@ -11,5 +11,5 @@
   "integration_type": "service",
   "iot_class": "cloud_polling",
   "requirements": ["requests>=2.25.1", "aiohttp>=3.8.0", "aiofiles>=23.1.0", "pyyaml>=6.0"],
-  "icon": "mdi:robot-industrial"
+  "icon": "mdi:brain"
 }
