@@ -58,6 +58,16 @@
   - 中文提示词支持良好
   - 异步任务处理（自动轮询）
 
+- **Qwen/Qwen-Image-Edit** ✨ 新增
+  - 专业图像编辑模型
+  - 支持本地图像编辑
+  - 支持风格转换、场景改变、物体编辑等
+
+- **Qwen/Qwen-Image-Edit-2509** ✨ 最新
+  - 最新版本的图像编辑模型
+  - 编辑效果更好，支持更复杂的指令
+  - 推荐用于精细的图像编辑任务
+
 ### 自定义模型支持 🎨
 
 除了内置预设模型，您还可以使用 **任何 ModelScope 平台支持的模型**：
@@ -242,8 +252,17 @@ data:
 
 #### 3.2 本地图像编辑（新功能） ✨
 
-支持上传本地图像进行图像编辑：
+支持上传本地图像进行图像编辑，支持多个编辑模型：
 
+**使用 Qwen-Image 模型（推荐文生图）**：
+```yaml
+action: ai_task.generate_image
+data:
+  prompt: 一只可爱的小猫在花园里玩耍
+  entity_id: ai_task.yanfeng_ai_task
+```
+
+**使用 Qwen-Image-Edit 进行图像编辑**：
 ```yaml
 action: ai_task.generate_image
 data:
@@ -254,16 +273,39 @@ data:
   entity_id: ai_task.yanfeng_ai_task
 ```
 
+**使用 Qwen-Image-Edit-2509（最新，效果更好）**：
+```yaml
+action: ai_task.generate_image
+data:
+  prompt: 把这个人的头发改成蓝色
+  attachments:
+    - media_content_id: media-source://image_upload/your_image_id
+      mime_type: image/jpeg
+  entity_id: ai_task.yanfeng_ai_task
+```
+
+**如何选择模型**：
+1. **文生图**（从无到有）：使用 `Qwen/Qwen-Image`
+2. **基础编辑**：使用 `Qwen/Qwen-Image-Edit`
+3. **精细编辑**（复杂指令）：使用 `Qwen/Qwen-Image-Edit-2509` ⭐ 推荐
+
+**在配置界面中选择模型**：
+```
+设置 → 设备与服务 → Yanfeng AI Task → 配置 → 图像模型
+```
+然后选择或输入相应的模型 ID
+
 **工作原理**：
 1. 自动上传本地图像到 ModelScope 服务
 2. 获得公开 URL
-3. 使用 Qwen-Image 编辑模型进行图像处理
+3. 使用选定的编辑模型进行处理
 4. 返回编辑后的图像
 
 **支持的编辑操作**：
 - 风格转换（吉卜力风格、油画风格、卡通风格等）
 - 场景改变（室内改户外、白天改夜晚等）
 - 物体编辑（添加或移除物体）
+- 属性修改（改变颜色、材质、表情等）
 - 文字添加
 - 图像增强（清晰度、色彩等）
 
@@ -275,14 +317,21 @@ prompt: "将此图片转换为水彩画风格"
 # 改变场景
 prompt: "把这个室内场景改为户外春天环境"
 
+# 修改属性
+prompt: "把这个人的头发改成蓝色"
+
 # 添加元素
 prompt: "给图片中的人物添加一顶帽子"
+
+# 物体移除
+prompt: "移除图片中背景的电线杆"
 ```
 
 **注意**：
 - 首次使用时会自动上传文件到 ModelScope（可能需要几秒钟）
 - 需要确保 Home Assistant 能访问图像文件
 - 支持的图像格式：JPEG、PNG、WEBP
+- 编辑模型需要输入图像，不能用于纯文生图
 
 ### 4. 图像识别
 

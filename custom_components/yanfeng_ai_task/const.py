@@ -77,10 +77,15 @@ SUPPORTED_CHAT_MODELS = [
 
 SUPPORTED_IMAGE_MODELS = [
     "Qwen/Qwen-Image",
+    "Qwen/Qwen-Image-Edit",
+    "Qwen/Qwen-Image-Edit-2509",
 ]
 
 # Models that require an input image for editing
-IMAGE_EDITING_MODELS = []
+IMAGE_EDITING_MODELS = [
+    "Qwen/Qwen-Image-Edit",
+    "Qwen/Qwen-Image-Edit-2509",
+]
 
 # Recommended models
 # Note: Use pure text models for function calling, not VL (Vision-Language) models
