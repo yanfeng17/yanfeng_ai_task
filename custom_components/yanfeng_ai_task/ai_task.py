@@ -141,6 +141,7 @@ class YanfengAITaskEntity(
         # Extract prompt from the last user message
         prompt = ""
         image_attachment_path = None
+        image_attachment_mime_type = None
 
         for content in reversed(chat_log.content):
             if isinstance(content, conversation.UserContent):
@@ -152,7 +153,9 @@ class YanfengAITaskEntity(
                         # Check if it's an image attachment
                         if attachment.mime_type and attachment.mime_type.startswith("image/"):
                             image_attachment_path = str(attachment.path)
-                            LOGGER.debug("Found image attachment for editing: %s", attachment.path)
+                            image_attachment_mime_type = attachment.mime_type
+                            LOGGER.debug("Found image attachment for editing: %s (mime_type: %s)",
+                                        attachment.path, attachment.mime_type)
                             break
                 break
 
@@ -184,9 +187,9 @@ class YanfengAITaskEntity(
             prompt = re.sub(url_pattern, '', prompt).strip()
             LOGGER.info("Extracted image URL from prompt: %s", image_url)
         elif image_attachment_path:
-            # Use local file path (will be converted to base64)
+            # Use local file path (will be uploaded to ModelScope)
             image_path = image_attachment_path
-            LOGGER.info("Using local image file: %s", image_path)
+            LOGGER.info("Using local image file: %s (mime_type: %s)", image_path, image_attachment_mime_type)
 
         LOGGER.debug("Using image model: %s for prompt: %s (image_url: %s, image_path: %s)",
                     image_model, prompt[:100], image_url or "none", image_path or "none")
@@ -198,6 +201,7 @@ class YanfengAITaskEntity(
                 prompt=prompt,
                 image_url=image_url,
                 image_path=image_path,
+                image_mime_type=image_attachment_mime_type,
                 size="1024*1024",
                 n=1,
             )

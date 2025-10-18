@@ -190,6 +190,7 @@ class ModelScopeAPIClient:
         prompt: str,
         image_url: str | None = None,
         image_path: str | None = None,
+        image_mime_type: str | None = None,
         size: str = "1024x1024",
         quality: str = "standard",
         n: int = 1,
@@ -201,6 +202,7 @@ class ModelScopeAPIClient:
             prompt: The text prompt for image generation/editing
             image_url: Optional input image URL for image editing models
             image_path: Optional local file path (will be uploaded to ModelScope)
+            image_mime_type: MIME type of the image (e.g., image/jpeg, image/png)
             size: Image size (default: 1024x1024)
             quality: Image quality (default: standard)
             n: Number of images to generate (default: 1)
@@ -219,8 +221,16 @@ class ModelScopeAPIClient:
             # Upload local file to ModelScope to get public URL
             # This is the correct way to handle local files with ModelScope API
             try:
-                import mimetypes
-                mime_type = mimetypes.guess_type(image_path)[0]
+                # Use provided MIME type if available, otherwise guess from file
+                mime_type = image_mime_type
+                if not mime_type:
+                    import mimetypes
+                    mime_type = mimetypes.guess_type(image_path)[0]
+
+                # Fallback to common image MIME type if still unknown
+                if not mime_type or mime_type == "application/octet-stream":
+                    mime_type = "image/jpeg"
+                    LOGGER.debug("MIME type not detected or invalid, using default: %s", mime_type)
 
                 # Upload file and get public URL
                 uploaded_url = await self.upload_file(image_path, mime_type)
