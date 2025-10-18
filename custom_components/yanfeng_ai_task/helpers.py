@@ -200,7 +200,7 @@ class ModelScopeAPIClient:
             model: The model ID to use for image generation
             prompt: The text prompt for image generation/editing
             image_url: Optional input image URL for image editing models
-            image_path: Optional local file path (will be converted to base64)
+            image_path: Optional local file path (will be uploaded to ModelScope)
             size: Image size (default: 1024x1024)
             quality: Image quality (default: standard)
             n: Number of images to generate (default: 1)
@@ -216,19 +216,19 @@ class ModelScopeAPIClient:
             payload["image_url"] = image_url
             LOGGER.debug("Using image_url for image editing: %s", image_url)
         elif image_path:
-            # Try converting local file to base64 data URL
+            # Upload local file to ModelScope to get public URL
+            # This is the correct way to handle local files with ModelScope API
             try:
-                import base64
-                with open(image_path, 'rb') as f:
-                    image_data = base64.b64encode(f.read()).decode('utf-8')
-                # Guess mime type
                 import mimetypes
-                mime_type = mimetypes.guess_type(image_path)[0] or "image/jpeg"
-                payload["image_url"] = f"data:{mime_type};base64,{image_data}"
-                LOGGER.debug("Converted local file to base64 data URL: %s", image_path)
+                mime_type = mimetypes.guess_type(image_path)[0]
+
+                # Upload file and get public URL
+                uploaded_url = await self.upload_file(image_path, mime_type)
+                payload["image_url"] = uploaded_url
+                LOGGER.debug("Uploaded local file to ModelScope, using URL: %s", uploaded_url)
             except Exception as err:
-                LOGGER.error("Failed to read local image file: %s", err)
-                raise HomeAssistantError(f"Failed to read image file: {err}") from err
+                LOGGER.error("Failed to upload local image file: %s", err)
+                raise HomeAssistantError(f"Failed to upload image file: {err}") from err
 
         try:
             # Step 1: Submit image generation task
