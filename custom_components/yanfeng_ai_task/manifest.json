@@ -1,7 +1,7 @@
 {
   "domain": "yanfeng_ai_task",
   "name": "Yanfeng AI Task",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "config_entry_version": 1,
   "after_dependencies": ["assist_pipeline", "intent"],
   "codeowners": ["@yanfeng"],
