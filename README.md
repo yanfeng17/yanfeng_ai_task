@@ -523,6 +523,18 @@ ERROR: ModelScope Image API error: 500
 - 缩小图像尺寸以加快上传速度
 - 确保网络连接稳定
 
+### 问题9：集成图标无法显示
+**症状**：Home Assistant 中集成管理界面无法显示自定义图标
+**原因**：Home Assistant 不支持从本地 custom_components 目录加载集成图标，必须使用 Material Design Icons (MDI)
+**解决方案**：
+- 本项目已改用 MDI 图标（`mdi:robot-industrial`）
+- 图标可在所有 Home Assistant 版本中正确显示
+- 如需自定义 PNG 图标，需要提交到官方 [brands](https://github.com/home-assistant/brands) 仓库
+
+**说明**：
+- 如果要提交自定义图标到官方仓库，可参考 [Logos for custom integrations](https://developers.home-assistant.io/blog/2020/05/08/logos-custom-integrations/)
+- GitHub README 中仍可以使用 PNG 图标（已保留 `logo.png`）
+
 ### 启用调试日志
 
 在 `configuration.yaml` 中添加：
