@@ -1,0 +1,116 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Yanfeng AI Task",
+        "description": "配置您的 API Key 和模型设置",
+        "data": {
+          "api_key": "API Key",
+          "chat_model": "对话模型",
+          "image_model": "图像模型",
+          "temperature": "温度 (0.0-2.0)",
+          "max_tokens": "最大令牌数 (1-8192)"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "无效的 API Key。请检查您的 ModelScope API Key。",
+      "unknown": "未知错误。请重试。"
+    },
+    "abort": {
+      "already_configured": "服务已经配置"
+    }
+  },
+  "config_subentries": {
+    "conversation": {
+      "initiate_flow": {
+        "user": "添加对话代理",
+        "reconfigure": "重新配置对话代理"
+      },
+      "entry_type": "对话代理",
+      "step": {
+        "set_options": {
+          "title": "配置对话代理",
+          "data": {
+            "prompt": "系统提示词",
+            "llm_hass_api": "控制 Home Assistant",
+            "chat_model": "对话模型",
+            "image_model": "图像模型",
+            "temperature": "温度",
+            "top_p": "Top P",
+            "max_tokens": "最大令牌数"
+          }
+        }
+      },
+      "abort": {
+        "entry_not_loaded": "配置禁用时无法添加内容。",
+        "reconfigure_successful": "重新配置成功"
+      }
+    },
+    "ai_task_data": {
+      "initiate_flow": {
+        "user": "添加人工智能任务",
+        "reconfigure": "重新配置人工智能任务"
+      },
+      "entry_type": "人工智能任务",
+      "step": {
+        "set_options": {
+          "title": "配置人工智能任务",
+          "data": {
+            "prompt": "系统提示词",
+            "llm_hass_api": "控制 Home Assistant",
+            "chat_model": "对话模型",
+            "image_model": "图像模型",
+            "temperature": "温度",
+            "top_p": "Top P",
+            "max_tokens": "最大令牌数"
+          }
+        }
+      },
+      "abort": {
+        "entry_not_loaded": "配置禁用时无法添加内容。",
+        "reconfigure_successful": "重新配置成功"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Yanfeng AI Task 选项",
+        "description": "配置 Yanfeng AI Task 的选项",
+        "data": {
+          "prompt": "系统提示词",
+          "llm_hass_api": "控制 Home Assistant",
+          "chat_model": "对话模型",
+          "image_model": "图像模型",
+          "temperature": "温度",
+          "top_p": "Top P",
+          "max_tokens": "最大令牌数"
+        }
+      }
+    }
+  },
+  "entity": {
+    "conversation": {
+      "yanfeng_ai": {
+        "name": "Yanfeng AI"
+      }
+    }
+  },
+  "services": {
+    "generate_content": {
+      "name": "生成内容",
+      "description": "使用 Yanfeng AI Task 生成内容",
+      "fields": {
+        "prompt": {
+          "name": "提示词",
+          "description": "用于生成内容的提示词"
+        },
+        "model": {
+          "name": "模型",
+          "description": "用于生成的模型"
+        }
+      }
+    }
+  }
+}

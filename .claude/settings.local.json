@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/AI Coding/AI_TASK/others/google_generative_ai_conversation/**)",
+      "Bash(python:*)",
+      "WebSearch",
+      "WebFetch(domain:www.alibabacloud.com)",
+      "Bash(git init:*)",
+      "Bash(git config:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

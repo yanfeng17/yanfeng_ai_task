@@ -1,0 +1,200 @@
+# Intent configurations for Yanfeng AI Task
+# 意图配置文件 - 定义各种设备控制意图的句式模板
+
+language: "zh"
+
+# 空调温度设置意图
+ClimateSetTemperature:
+  data:
+    - sentences:
+        - "{request_word} {action_word} {name} {temperature} 度"
+        - "{request_word} {name} {action_word} {temperature} 度"
+        - "{action_word} {name} {temperature} 度"
+        - "{name} {temperature} 度"
+  speech:
+    text: "正在设置空调温度"
+
+# 空调模式设置意图
+ClimateSetMode:
+  data:
+    - sentences:
+        - "{request_word} {action_word} {name} {mode} 模式"
+        - "{request_word} {name} {action_word} {mode} 模式"
+        - "{action_word} {name} {mode} 模式"
+        - "{name} {mode} 模式"
+  speech:
+    text: "正在设置空调模式"
+
+# 空调风速设置意图
+ClimateSetFanMode:
+  data:
+    - sentences:
+        - "{request_word} {action_word} {name} 风速 {fan_mode}"
+        - "{request_word} {action_word} {name} {fan_mode}"
+        - "{action_word} {name} 风速 {fan_mode}"
+        - "{name} 风速 {fan_mode}"
+  speech:
+    text: "正在设置空调风速"
+
+# 空调湿度设置意图
+ClimateSetHumidity:
+  data:
+    - sentences:
+        - "{request_word} {action_word} {name} 湿度 {humidity}"
+        - "{action_word} {name} 湿度 {humidity}"
+        - "{name} 湿度 {humidity}"
+  speech:
+    text: "正在设置空调湿度"
+
+# 空调摆风设置意图
+ClimateSetSwingMode:
+  data:
+    - sentences:
+        - "{request_word} {action_word} {name} 摆风 {swing_mode}"
+        - "{action_word} {name} 摆风 {swing_mode}"
+        - "{name} 摆风 {swing_mode}"
+  speech:
+    text: "正在设置空调摆风模式"
+
+# 窗帘全部控制意图
+CoverControlAll:
+  data:
+    - sentences:
+        - "{request_word} {action} {all_word} 窗帘"
+        - "{action} {all_word} 窗帘"
+        - "{all_word} 窗帘 {action}"
+  speech:
+    text: "正在控制所有窗帘"
+
+# 灯光设置意图
+HassLightSetAllIntent:
+  data:
+    - sentences:
+        - "{request_word} {action_word} {name} 亮度 {brightness}"
+        - "{request_word} {action_word} {name} 颜色 {color}"
+        - "{action_word} {name} 亮度 {brightness}"
+        - "{name} 亮度 {brightness}"
+  speech:
+    text: "正在设置灯光参数"
+
+# 定时器意图
+HassTimerIntent:
+  data:
+    - sentences:
+        - "{duration} 后 提醒 {message}"
+        - "设置 定时器 {duration}"
+        - "{time} 提醒我 {message}"
+  speech:
+    text: "正在设置定时器"
+
+# 通知意图
+HassNotifyIntent:
+  data:
+    - sentences:
+        - "通知 {message}"
+        - "提醒 {message}"
+        - "创建 通知 {message}"
+  speech:
+    text: "正在创建通知"
+
+# 扩展规则 - 定义可重用的词汇集合
+expansion_rules:
+  # 请求词
+  request_word:
+    values:
+      - "请"
+      - "帮我"
+      - "请帮我"
+      - "麻烦"
+      - "麻烦你"
+      - "能否"
+      - "能不能"
+      - "可以"
+      - "可不可以"
+      - "希望"
+      - "我想"
+      - "让"
+      - "帮忙"
+      - "给我"
+      - "替我"
+      - "为我"
+      - ""  # 可选，允许为空
+
+  # 动作词
+  action_word:
+    values:
+      - "打开"
+      - "开启"
+      - "启动"
+      - "开"
+      - "调节"
+      - "调整"
+      - "设置"
+      - "设定"
+      - "调"
+      - "把"
+      - "将"
+
+  # 全部修饰词
+  all_word:
+    values:
+      - "所有"
+      - "全部"
+      - "所有的"
+      - "全部的"
+
+  # 空调模式
+  mode:
+    values:
+      - "制冷"
+      - "制热"
+      - "自动"
+      - "除湿"
+      - "送风"
+      - "cool"
+      - "heat"
+      - "auto"
+      - "dry"
+      - "fan_only"
+
+  # 风速模式
+  fan_mode:
+    values:
+      - "自动"
+      - "低速"
+      - "中速"
+      - "高速"
+      - "低风"
+      - "中风"
+      - "高风"
+      - "一档"
+      - "二档"
+      - "三档"
+      - "auto"
+      - "low"
+      - "medium"
+      - "high"
+
+  # 摆风模式
+  swing_mode:
+    values:
+      - "开启"
+      - "关闭"
+      - "水平"
+      - "垂直"
+      - "on"
+      - "off"
+      - "horizontal"
+      - "vertical"
+
+  # 窗帘动作
+  action:
+    values:
+      - "打开"
+      - "开启"
+      - "开"
+      - "关闭"
+      - "关"
+      - "关上"
+      - "open"
+      - "close"

@@ -1,0 +1,114 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Yanfeng AI Task",
+        "description": "Configure your API key and model settings for Yanfeng AI Task integration.",
+        "data": {
+          "api_key": "API Key",
+          "chat_model": "Chat Model",
+          "image_model": "Image Model",
+          "temperature": "Temperature (0.0-2.0)",
+          "max_tokens": "Max Tokens (1-8192)"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid API key. Please check your ModelScope API key.",
+      "unknown": "Unknown error occurred. Please try again."
+    },
+    "abort": {
+      "already_configured": "Service is already configured"
+    }
+  },
+  "config_subentries": {
+    "conversation": {
+      "initiate_flow": {
+        "user": "添加对话代理",
+        "reconfigure": "重新配置对话代理"
+      },
+      "entry_type": "对话代理",
+      "step": {
+        "set_options": {
+          "data": {
+            "prompt": "System Prompt",
+            "llm_hass_api": "Control Home Assistant",
+            "chat_model": "Chat Model",
+            "image_model": "Image Model",
+            "temperature": "Temperature",
+            "top_p": "Top P",
+            "max_tokens": "Max Tokens"
+          }
+        }
+      },
+      "abort": {
+        "entry_not_loaded": "Cannot add things while the configuration is disabled.",
+        "reconfigure_successful": "Reconfiguration successful"
+      }
+    },
+    "ai_task_data": {
+      "initiate_flow": {
+        "user": "添加人工智能任务",
+        "reconfigure": "重新配置人工智能任务"
+      },
+      "entry_type": "人工智能任务",
+      "step": {
+        "set_options": {
+          "data": {
+            "prompt": "System Prompt",
+            "llm_hass_api": "Control Home Assistant",
+            "chat_model": "Chat Model",
+            "image_model": "Image Model",
+            "temperature": "Temperature",
+            "top_p": "Top P",
+            "max_tokens": "Max Tokens"
+          }
+        }
+      },
+      "abort": {
+        "entry_not_loaded": "Cannot add things while the configuration is disabled.",
+        "reconfigure_successful": "Reconfiguration successful"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Yanfeng AI Task Options",
+        "description": "Configure the options for Yanfeng AI Task.",
+        "data": {
+          "prompt": "System Prompt",
+          "llm_hass_api": "Control Home Assistant",
+          "chat_model": "Chat Model",
+          "image_model": "Image Model",
+          "temperature": "Temperature",
+          "top_p": "Top P",
+          "max_tokens": "Max Tokens"
+        }
+      }
+    }
+  },
+  "entity": {
+    "conversation": {
+      "yanfeng_ai": {
+        "name": "Yanfeng AI"
+      }
+    }
+  },
+  "services": {
+    "generate_content": {
+      "name": "Generate content",
+      "description": "Generate content using Yanfeng AI Task.",
+      "fields": {
+        "prompt": {
+          "name": "Prompt",
+          "description": "The prompt to generate content from."
+        },
+        "model": {
+          "name": "Model",
+          "description": "The model to use for generation."
+        }
+      }
+    }
+  }
+}

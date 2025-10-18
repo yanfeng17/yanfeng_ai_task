@@ -1,0 +1,16 @@
+{
+  "domain": "yanfeng_ai_task",
+  "name": "Yanfeng AI Task",
+  "version": "2.1.0",
+  "config_entry_version": 1,
+  "after_dependencies": ["assist_pipeline", "intent"],
+  "codeowners": ["@yanfeng"],
+  "config_flow": true,
+  "dependencies": ["conversation", "ai_task"],
+  "documentation": "https://github.com/yanfeng/yanfeng_ai_task",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "requirements": ["requests>=2.25.1", "aiohttp>=3.8.0", "aiofiles>=23.1.0", "pyyaml>=6.0"],
+  "icon": "mdi:robot",
+  "logo": "logo.png"
+}

@@ -1,0 +1,18 @@
+{
+  "entity": {
+    "conversation": {
+      "agent": {
+        "default": "mdi:brain"
+      }
+    }
+  },
+  "entity_component": {
+    "_": {
+      "default": "mdi:robot-outline"
+    }
+  },
+  "services": {
+    "generate_data": "mdi:file-document-outline",
+    "generate_image": "mdi:image-outline"
+  }
+}
