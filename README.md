@@ -279,10 +279,28 @@ data:
 然后选择或输入相应的模型 ID
 
 **工作原理**：
-1. 自动上传本地图像到 ModelScope 服务
-2. 获得公开 URL
-3. 使用选定的编辑模型进行处理
+1. 自动将本地图像转换为 Home Assistant 可访问的 HTTP URL
+2. 使用 HTTP URL 发送给 ModelScope API 进行处理
+3. ModelScope 通过 HTTP 访问图像并执行编辑操作
 4. 返回编辑后的图像
+
+**支持的图像来源**：
+- ✅ 本地上传的图像（自动转为 HTTP URL）
+- ✅ HTTP/HTTPS 公开 URL
+- ✅ Home Assistant 内部 URL
+
+**工作流程**：
+```
+本地图像文件 (attachment.path)
+  ↓
+Home Assistant 内部 URL 转换
+  ↓
+HTTP URL (http://homeassistant.local:8123/media/local/image.jpg)
+  ↓
+ModelScope API 通过 HTTP 访问
+  ↓
+编辑后的图像返回
+```
 
 **支持的编辑操作**：
 - 风格转换（吉卜力风格、油画风格、卡通风格等）
@@ -494,34 +512,54 @@ DEBUG: ⚠️ Layer 1: Not a service call, proceeding to Layer 2/3 (AI processin
 - 查看日志确认使用的模式
 - 清除浏览器缓存
 
-### 问题7：图像生成/编辑失败 ⚠️（新增）
-**症状**：收到错误 "Error generating image: ModelScope Image API error: 500"
-**原因**：本地图像文件需要先上传到 ModelScope API
-**解决方案**：
-- 确保使用支持图像编辑的模型（如 Qwen/Qwen-Image）
-- 检查图像文件格式是否支持（JPEG、PNG、WEBP）
-- 检查 ModelScope API 是否正常工作
-- 查看日志中是否看到 "Uploaded local file to ModelScope" 消息
+### 问题7：本地图片上传到图像编辑失败 ⚠️
 
-**日志示例（成功）**：
+**症状**：上传本地图片进行编辑时出错（ModelScope 无法访问图片 URL）
+
+**当前限制**：
+
+本地图片编辑功能 **当前仅在以下情况下可用**：
+- ✅ 您的 Home Assistant 有 **公网可访问的 external_url**（配置了域名或内网穿透）
+- ✅ 图片来源为 **HTTP/HTTPS 公开链接**（非本地文件）
+
+**本地图片无法使用的原因**：
+- 当前实现使用 `internal_url` 构造本地图片 URL（内网 IP 地址）
+- ModelScope 服务器在外网，**无法访问内网地址**
+- 导致图像编辑请求失败
+
+**当前状态**：
+- ❌ **没有公网 URL** → 本地图片编辑不可用
+- ❌ **使用内网穿透但未配置 external_url** → 本地图片编辑不可用
+- ✅ **已配置 external_url（公网可访问）** → 本地图片编辑可用
+
+### 问题8：API 调用失败
+
+**可能原因**：
+1. ModelScope API 连接问题 - 检查 API Key 是否有效，余额是否充足
+2. 模型不支持 - 确保使用支持图像编辑的模型（如 Qwen/Qwen-Image-Edit）
+
+**日志示例**：
+
+✅ 成功处理：
 ```
-DEBUG: Uploaded local file to ModelScope, using URL: https://...
-DEBUG: Submitting ModelScope image task to v1/images/generations
+DEBUG: Found image attachment for editing: /config/media/upload_...
+DEBUG: Generated image URL from attachment: http://homeassistant.local:8123/media/local/...
+INFO: Extracted image URL from prompt: http://...
+DEBUG: Using image model: Qwen/Qwen-Image-Edit
 ```
 
-**日志示例（失败）**：
+❌ 失败处理：
 ```
-ERROR: Failed to upload local image file: [error message]
-ERROR: ModelScope Image API error: 500
+ERROR: Failed to generate HTTP URL from attachment path: [error]
+ERROR: Error generating image: [error message]
 ```
 
-### 问题8：图像上传缓慢
-**症状**：图像编辑请求需要很长时间
-**原因**：首次上传文件到 ModelScope 服务需要时间
-**解决方案**：
-- 这是正常的，首次上传通常需要 2-5 秒
-- 缩小图像尺寸以加快上传速度
-- 确保网络连接稳定
+**排查步骤**：
+1. 启用调试日志（见下面的日志配置）
+2. 检查日志中的 URL 生成过程
+3. 尝试直接在浏览器中访问生成的 URL，确认 HA 可以提供该文件
+4. 如果 URL 无法访问，检查 HA 网络设置和防火墙配置
+5. 查询 ModelScope 官方文档确认 API 限制
 
 ### 启用调试日志
 

@@ -189,8 +189,6 @@ class ModelScopeAPIClient:
         model: str,
         prompt: str,
         image_url: str | None = None,
-        image_path: str | None = None,
-        image_mime_type: str | None = None,
         size: str = "1024x1024",
         quality: str = "standard",
         n: int = 1,
@@ -200,9 +198,7 @@ class ModelScopeAPIClient:
         Args:
             model: The model ID to use for image generation
             prompt: The text prompt for image generation/editing
-            image_url: Optional input image URL for image editing models
-            image_path: Optional local file path (will be uploaded to ModelScope)
-            image_mime_type: MIME type of the image (e.g., image/jpeg, image/png)
+            image_url: Optional input image URL for image editing models (HTTP URL)
             size: Image size (default: 1024x1024)
             quality: Image quality (default: standard)
             n: Number of images to generate (default: 1)
@@ -217,28 +213,6 @@ class ModelScopeAPIClient:
         if image_url:
             payload["image_url"] = image_url
             LOGGER.debug("Using image_url for image editing: %s", image_url)
-        elif image_path:
-            # Upload local file to ModelScope to get public URL
-            # This is the correct way to handle local files with ModelScope API
-            try:
-                # Use provided MIME type if available, otherwise guess from file
-                mime_type = image_mime_type
-                if not mime_type:
-                    import mimetypes
-                    mime_type = mimetypes.guess_type(image_path)[0]
-
-                # Fallback to common image MIME type if still unknown
-                if not mime_type or mime_type == "application/octet-stream":
-                    mime_type = "image/jpeg"
-                    LOGGER.debug("MIME type not detected or invalid, using default: %s", mime_type)
-
-                # Upload file and get public URL
-                uploaded_url = await self.upload_file(image_path, mime_type)
-                payload["image_url"] = uploaded_url
-                LOGGER.debug("Uploaded local file to ModelScope, using URL: %s", uploaded_url)
-            except Exception as err:
-                LOGGER.error("Failed to upload local image file: %s", err)
-                raise HomeAssistantError(f"Failed to upload image file: {err}") from err
 
         try:
             # Step 1: Submit image generation task

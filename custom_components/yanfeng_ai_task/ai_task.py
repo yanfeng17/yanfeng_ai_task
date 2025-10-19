@@ -66,6 +66,7 @@ class YanfengAITaskEntity(
     ) -> None:
         """Initialize the entity."""
         super().__init__(entry, subentry)
+        self.hass = hass
         # Enable all supported features by default
         self._attr_supported_features = (
             ai_task.AITaskEntityFeature.GENERATE_DATA
@@ -152,7 +153,7 @@ class YanfengAITaskEntity(
                     for attachment in content.attachments:
                         # Check if it's an image attachment
                         if attachment.mime_type and attachment.mime_type.startswith("image/"):
-                            image_attachment_path = str(attachment.path)
+                            image_attachment_path = attachment.path
                             image_attachment_mime_type = attachment.mime_type
                             LOGGER.debug("Found image attachment for editing: %s (mime_type: %s)",
                                         attachment.path, attachment.mime_type)
@@ -173,7 +174,6 @@ class YanfengAITaskEntity(
 
         # Handle image URL for editing models
         image_url = None
-        image_path = None
 
         # Extract URL from prompt text
         import re
@@ -187,12 +187,28 @@ class YanfengAITaskEntity(
             prompt = re.sub(url_pattern, '', prompt).strip()
             LOGGER.info("Extracted image URL from prompt: %s", image_url)
         elif image_attachment_path:
-            # Use local file path (will be uploaded to ModelScope)
-            image_path = image_attachment_path
-            LOGGER.info("Using local image file: %s (mime_type: %s)", image_path, image_attachment_mime_type)
+            # Convert local attachment to HTTP URL
+            # Use Home Assistant's media source system
+            try:
+                from pathlib import Path
 
-        LOGGER.debug("Using image model: %s for prompt: %s (image_url: %s, image_path: %s)",
-                    image_model, prompt[:100], image_url or "none", image_path or "none")
+                # Convert Path to string if needed
+                file_path = Path(image_attachment_path) if not isinstance(image_attachment_path, Path) else image_attachment_path
+
+                # Generate HTTP URL for the attachment through HA's media system
+                # The attachment path is typically in /media or /config/media
+                relative_path = file_path.name  # Get just the filename
+
+                # HA serves media through /media/local/ URL
+                # For attachments, we need to construct a valid URL
+                image_url = f"{self.hass.config.internal_url}/media/local/{relative_path}"
+
+                LOGGER.debug("Generated image URL from attachment: %s", image_url)
+            except Exception as err:
+                LOGGER.warning("Failed to generate HTTP URL from attachment path: %s, will skip image", err)
+
+        LOGGER.debug("Using image model: %s for prompt: %s (image_url: %s)",
+                    image_model, prompt[:100], image_url or "none")
 
         try:
             # Use image generation model
@@ -200,8 +216,6 @@ class YanfengAITaskEntity(
                 model=image_model,
                 prompt=prompt,
                 image_url=image_url,
-                image_path=image_path,
-                image_mime_type=image_attachment_mime_type,
                 size="1024*1024",
                 n=1,
             )
